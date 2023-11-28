@@ -27,11 +27,20 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Allow the release namespace to be overridden.
 */}}
-{{- define "etcd-backup.namespace" -}}
+{{- define "uptime-kuma.namespace" -}}
   {{- if .Values.namespaceOverride -}}
     {{- .Values.namespaceOverride -}}
   {{- else -}}
     {{- .Release.Namespace -}}
+  {{- end -}}
+{{- end -}}
+
+
+{{- define "uptime-kuma.serviceMonitorSecret" -}}
+  {{- if .Values.serviceMonitor.secret.useExistingSecret -}}
+    {{-  .Values.serviceMonitor.secret.useExistingSecret -}}
+  {{- else -}}
+    {{ include "uptime-kuma.fullname" . }}
   {{- end -}}
 {{- end -}}
 

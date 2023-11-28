@@ -36,6 +36,25 @@ ingress:
       secretName: kuma-tls
 
 
+# enable metrics scraping
 serviceMonitor:
-  enabled: true
+  enabled: false
+  interval: 60s
+  scheme: http
+  port: 80
+  # authentication is required to scrap the endpoint /metrics
+  ########### see https://github.com/louislam/uptime-kuma/wiki/API-Keys
+  # so you might not enable servicemonitor during the first deployment
+  # then as soon as your kuma is UP, generate an apikey
+  # come back to enable serviceMonitor
+  # To provide the apikey, you have two options:
+  ## secret.useExistingSecret: to provide the existing secret name. It must contain the keys: username & apikey
+  ## secret.createSecret.apikey to provide apikey value in order to create a secret
+  secret:
+    useExistingSecret: ""
+    createSecret:
+      apikey: ""
+      user: "randomuser"
+
 ```
+

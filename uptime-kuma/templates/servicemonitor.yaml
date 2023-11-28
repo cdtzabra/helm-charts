@@ -10,8 +10,15 @@ spec:
   endpoints:
     - interval: {{ .Values.serviceMonitor.interval }}
       scheme: {{ .Values.serviceMonitor.scheme }}
-      targetPort: {{ .Values.serviceMonitor.port }}
+      port: {{ .Values.serviceMonitor.port }}
       path: /metrics
+      basicAuth:
+        password:
+          name: {{ include "uptime-kuma.serviceMonitorSecret" . }}
+          key: apikey
+        username:
+          name: {{ include "uptime-kuma.serviceMonitorSecret" . }}
+          key: username
   selector:
     matchLabels:
       {{- include "uptime-kuma.selectorLabels" . | nindent 6 }}
