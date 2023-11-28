@@ -1,0 +1,200 @@
+# Default values for uptime-kuma.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: louislam/uptime-kuma
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  # https://hub.docker.com/r/louislam/uptime-kuma
+  tag: "1.23.7"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# some settings for uptime-kuma container within the pod
+kuma:
+  containerPort: 8080
+  dataDir: "/app/data"
+  extraEnvVars: []
+  # https://github.com/louislam/uptime-kuma/wiki/Environment-Variables
+      # protection against iframe
+    # - name: UPTIME_KUMA_DISABLE_FRAME_SAMEORIGIN
+    #   value: false
+    #   # Ignore all TLS errors
+    # - name: NODE_TLS_REJECT_UNAUTHORIZED
+    #   value: 0
+    # - name: UPTIME_KUMA_SSL_KEY
+    #   value: "xyz"
+    # - name: UPTIME_KUMA_SSL_CERT
+    #   value: "yzx"
+    # - name: NODE_EXTRA_CA_CERTS
+    #   value: "zxy"
+    # - name: MY_CUSTOM_VAR
+    #   value: "zabra"
+
+# persistence volume
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClassName: thin-csi
+  accessModes:
+    - ReadWriteOnce
+  # mountPath: will be kuma.datadir defined above
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    #kubernetes.io/ingress.class: nginx
+    #cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+
+# enable metrics scraping
+serviceMonitor:
+  enabled: false
+  interval: 60s
+  scheme: http
+  port: 80
+
+# prometheus rules
+prometheusRules:
+  rules:
+    - alert: kumaUrlDown
+      expr: monitor_status == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "The endpoint {{ $labels.monitor_name }} - {{ $labels.monitor_url }} has been DOWN more than 5 minutes"
+        monitor_name: "{{ $labels.monitor_name }}"
+        monitor_url: "{{ $labels.monitor_url }}"
+        monitor_type: "{{ $labels.monitor_type }}"
+
+    - alert: kumaCertExpired
+      expr: monitor_cert_is_valid == 0
+      for: 10m
+      labels:
+        severity: critical
+      annotations:
+        summary: "The endpoint {{ $labels.monitor_name }} - {{ $labels.monitor_url }} certificate is NOT VALID"
+        monitor_name: "{{ $labels.monitor_name }}"
+        monitor_url: "{{ $labels.monitor_url }}"
+        monitor_type: "{{ $labels.monitor_type }}"
+
+    - alert: kumaCertExpiringSoon
+      expr: monitor_cert_days_remaining < 8
+      for: 10m
+      labels:
+        severity: critical
+      annotations:
+        summary: "The endpoint {{ $labels.monitor_name }} -  {{ $labels.monitor_url }} certificate will expired in {{ $value }} days"
+        monitor_name: "{{ $labels.monitor_name }}"
+        monitor_url: "{{ $labels.monitor_url }}"
+        monitor_type: "{{ $labels.monitor_type }}"
+        days_remaining: "{{ $value }}"
+
+    - alert: kumaCertExpiring
+      expr: monitor_cert_days_remaining < 15
+      labels:
+        severity: warning
+      annotations:
+        summary: "The endpoint {{ $labels.monitor_name }} -  {{ $labels.monitor_url }} certificate will expired in {{ $value }} days"
+        monitor_name: "{{ $labels.monitor_name }}"
+        monitor_url: "{{ $labels.monitor_url }}"
+        monitor_type: "{{ $labels.monitor_type }}"
+        days_remaining: "{{ $value }}"
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+## Configure extra options for readiness probe
+## @param readinessProbe.enabled Enable readinessProbe
+## @param readinessProbe.initialDelaySeconds Initial delay seconds for readinessProbe
+## @param readinessProbe.periodSeconds Period seconds for readinessProbe
+## @param readinessProbe.timeoutSeconds Timeout seconds for readinessProbe
+## @param readinessProbe.failureThreshold Failure threshold for readinessProbe
+## @param readinessProbe.successThreshold Success threshold for readinessProbe
+##
+readinessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 1
+  successThreshold: 1
+  failureThreshold: 4
+
+## Configure extra options for liveness probe
+## @param livenessProbe.enabled Enable livenessProbe
+## @param livenessProbe.initialDelaySeconds Initial delay seconds for livenessProbe
+## @param livenessProbe.periodSeconds Period seconds for livenessProbe
+## @param livenessProbe.timeoutSeconds Timeout seconds for livenessProbe
+## @param livenessProbe.failureThreshold Failure threshold for livenessProbe
+## @param livenessProbe.successThreshold Success threshold for livenessProbe
+##
+livenessProbe:
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 5
+  successThreshold: 1
+  failureThreshold: 4

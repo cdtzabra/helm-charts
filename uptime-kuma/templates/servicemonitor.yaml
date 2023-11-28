@@ -1,0 +1,18 @@
+---
+{{- if  .Values.serviceMonitor.enabled }}
+apiVersion: apps/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "uptime-kuma.fullname" . }}
+  labels:
+    {{- include "uptime-kuma.labels" . | nindent 4 }}
+spec:
+  endpoints:
+    - interval: {{ .Values.serviceMonitor.interval }}
+      scheme: {{ .Values.serviceMonitor.scheme }}
+      targetPort: {{ .Values.serviceMonitor.port }}
+      path: /metrics
+  selector:
+    matchLabels:
+      {{- include "uptime-kuma.selectorLabels" . | nindent 6 }}
+{{- end }}

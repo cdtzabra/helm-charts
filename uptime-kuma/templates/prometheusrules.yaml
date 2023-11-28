@@ -1,0 +1,16 @@
+---
+{{- if  .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+ labels:
+   {{- include "uptime-kuma.labels" . | nindent 4 }}
+ name: {{ include "uptime-kuma.fullname" . }}
+spec:
+ groups:
+ - name: {{ include "uptime-kuma.name" . }}_alerts
+   {{- with .Values.prometheusRules.rules }}
+   rules:
+    {{- toYaml . | nindent 4 }}
+   {{- end }}
+{{- end }}
