@@ -1,0 +1,246 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ include "cnpg-cluster.fullname" . }}
+spec:
+  description: {{ include "cnpg-cluster.fullname" . }}
+  imageName: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+  imagePullPolicy: {{ .Values.image.pullPolicy }}
+  {{- with .Values.imagePullSecrets }}
+  imagePullSecrets:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  instances: {{ .Values.instances }}
+  postgresUID: {{ .Values.postgresUID }}
+  postgresGID: {{ .Values.postgresGID }}
+  startDelay: {{ .Values.startDelay }}
+  stopDelay: {{ .Values.stopDelay }}
+  primaryUpdateStrategy: {{ .Values.primaryUpdateStrategy }}
+  primaryUpdateMethod: {{ .Values.primaryUpdateMethod }}
+  minSyncReplicas: {{ .Values.minSyncReplicas }}
+  maxSyncReplicas: {{ .Values.maxSyncReplicas }}
+  logLevel: {{ .Values.logLevel }}
+  {{- if .Values.priorityClassName }}
+  priorityClassName: {{ .Values.priorityClassName }}
+  {{- end }}
+
+  postgresql:
+    {{- with .Values.pg.parameters }}
+    parameters:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.pg.pg_hba }}
+    pg_hba:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    promotionTimeout: {{ .Values.pg.promotionTimeout }}
+    {{- with .Values.pg.shared_preload_libraries }}
+    shared_preload_libraries:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+
+  bootstrap:
+  {{- if or (.Values.bootstrap_use_initdb) (and (.Values.bootstrap_use_recovery) (.Values.bootstrap_use_pg_basebackup )) }}
+    initdb:
+      database: {{ .Values.bootstrap.initdb.database | default "app" }}
+      owner: {{ .Values.bootstrap.initdb.owner | default "app" }}
+      {{- if .Values.bootstrap.initdb.owner_secret }}
+      secret:
+        name: {{ .Values.bootstrap.initdb.owner_existingsecret }}
+      {{- end }}
+      dataChecksums: {{ .Values.bootstrap.initdb.dataChecksums }}
+      encoding: {{ .Values.bootstrap.initdb.encoding }}
+      {{- if .Values.bootstrap.initdb.walSegmentSize }}
+      walSegmentSize: {{ .Values.bootstrap.initdb.walSegmentSize }}
+      {{- end }}
+      {{- with .Values.bootstrap.initdb.postInitSQL  }}
+      postInitSQL:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}  
+      {{- with .Values.bootstrap.initdb.postInitTemplateSQL }}
+      postInitTemplateSQL:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.bootstrap.initdb.postInitApplicationSQL }}
+      postInitApplicationSQL:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.bootstrap.initdb.postInitApplicationSQLRefs }}
+      postInitApplicationSQLRefs:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{ else }}
+    {{- if .Values.bootstrap_use_recovery }}
+    recovery:
+      {{- if  .Values.bootstrap.recovery.from_backup }}
+      backup:
+        name: {{ .Values.bootstrap.recovery.from_backup }}
+      {{- else }}
+      volumeSnapshots:
+        storage:
+          name: {{ required "Recovery from volume requires the volume name. Set it or use backup instead" .Values.bootstrap.recovery.from_volume.snapshot }}
+          kind: VolumeSnapshot
+          apiGroup: snapshot.storage.k8s.io
+        {{- if .Values.bootstrap.recovery.from_volume.walStorage }}
+
+        walStorage:
+          name: {{ .Values.bootstrap.recovery.from_volume.walStorage }}
+          kind: VolumeSnapshot
+          apiGroup: snapshot.storage.k8s.io
+        {{- end }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.bootstrap_use_pg_basebackup }}
+    pg_basebackup:
+      source: {{ required "pg_basebackup requires source cluster" .Values.bootstrap.pg_basebackup.source_cluster }}
+      {{- if .Values.bootstrap.pg_basebackup.source_database }}
+      database: {{ .Values.bootstrap.pg_basebackup.source_database }}
+      {{- end }}
+      {{- if .Values.bootstrap.pg_basebackup.source_database_owner }}
+      owner: {{ .Values.bootstrap.pg_basebackup.source_database_owner }}
+      {{- end }}
+    {{- end }}
+
+  {{- end }}
+
+  {{- if .Values.enableSuperuserAccess }}
+
+  enableSuperuserAccess: {{ .Values.enableSuperuserAccess }}
+  {{- if .Values.superuser_existingsecret }}
+  superuserSecret:
+    name: {{ .Values.superuser_existingsecret }}
+  {{- end }}
+  {{- end }}
+
+  storage:
+    resizeInUseVolumes: {{ .Values.storage.resizeInUseVolumes }}
+    size: {{ .Values.storage.size }}
+    {{- if .Values.storage.storageClassName }}
+    storageClassName: {{ .Values.storage.storageClassName }}
+    {{- end }}
+    {{- if .Values.storage.volumeMode }}
+    volumeMode: {{ .Values.storage.volumeMode }}
+    {{- end }}
+    {{- with .Values.storage.pvcTemplate }}
+    pvcTemplate:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+
+  {{- if .Values.walstorage_enabled }}
+
+  walStorage:
+    resizeInUseVolumes: {{ .Values.walstorage.resizeInUseVolumes }}
+    size: {{ .Values.walstorage.size }}
+    {{- if .Values.walstorage.walstorageClassName }}
+    walstorageClassName: {{ .Values.walstorage.walstorageClassName }}
+    {{- end }}
+    {{- if .Values.walstorage.volumeMode }}
+    volumeMode: {{ .Values.walstorage.volumeMode }}
+    {{- end }}
+    {{- with .Values.walstorage.pvcTemplate }}
+    pvcTemplate:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+
+  {{- if .Values.backup_enabled }}
+  backup:
+    {{- if .Values.backup.volumeSnapshot.enabled }}
+    volumeSnapshot:
+      online: {{ .Values.backup.volumeSnapshot.online }}
+      {{- if .Values.backup.volumeSnapshot.className }}
+      className: {{ .Values.backup.volumeSnapshot.className }}
+      {{- end }}
+      {{- if .Values.backup.volumeSnapshot.walClassName }}
+      walClassName: {{ .Values.backup.volumeSnapshot.walClassName }}
+      {{- end }}
+    {{- end }}
+    barmanObjectStore:
+      {{- if .Values.backup.target }}
+      target: {{ .Values.backup.target }}
+      {{- end }}
+      destinationPath: {{ .Values.backup.s3_destinationPath }}
+      endpointURL: {{ .Values.backup.s3_endpointURL }}
+      s3Credentials:
+        accessKeyId:
+          name: {{ required "s3 secretName is required when backup_enabled is set to TRUE" .Values.backup.s3_credential.secretName }}
+          key: {{ .Values.backup.s3_credential.secret_accesKey }}
+        secretAccessKey:
+          name: {{ .Values.backup.s3_credential.secretName }}
+          key: {{ .Values.backup.s3_credential.secret_secretKey }}
+      wal:
+        compression: {{ .Values.backup.wal.compression }}
+        maxParallel: {{ .Values.backup.wal.maxParallel }}
+        {{- if .Values.backup.wal.encryption }}
+        encryption: {{ .Values.backup.wal.encryption }}
+        {{- end }}
+      data:
+        compression: {{ .Values.backup.data.compression }}
+        {{- if .Values.backup.data.encryption }}
+        encryption: {{ .Values.backup.data.encryption }}
+        {{- end }}
+        {{- if .Values.backup.data.immediateCheckpoint }}
+        immediateCheckpoint: {{ .Values.backup.data.immediateCheckpoint }}
+        {{- end }}
+        jobs: {{ .Values.backup.data.jobs }}
+    retentionPolicy: {{ .Values.backup.retentionPolicy }}
+  {{- end }}
+
+
+  {{- if .Values.replica.enabled }}
+  
+  replica:
+    enabled: true
+    source: {{ required "replica requires a source to be set . Source must be an externalCluster" .Values.replica.source }}
+  {{- end }}
+
+
+  {{- with .Values.externalClusters }}
+
+  externalClusters:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+
+  {{- with .Values.roles }}
+
+  managed:
+    roles:
+      {{- toYaml . | nindent 6 }}
+  {{- end }}
+
+
+  nodeMaintenanceWindow:
+    inProgress: {{ .Values.nodeMaintenanceWindow.inProgress }}
+    reusePVC: {{ .Values.nodeMaintenanceWindow.reusePVC }}
+
+  monitoring:
+    enablePodMonitor: {{ .Values.monitoring.enablePodMonitor }}
+
+  {{- with .Values.resources }}
+  resources:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- with .Values.env }}
+
+  env:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- if .Values.affinity.enablePodAntiAffinity }}
+
+  affinity:
+    enablePodAntiAffinity: {{ .Values.affinity.enablePodAntiAffinity }}
+    topologyKey: {{ .Values.affinity.topologyKey }}
+    {{- with .Values.affinity.nodeSelector }}
+    nodeSelector:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.affinity.tolerations}}
+    tolerations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}

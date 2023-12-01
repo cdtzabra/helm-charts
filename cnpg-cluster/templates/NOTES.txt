@@ -1,0 +1,15 @@
+1. Get the Postgres cluster information by running these commands:
+
+    kubectl  --namespace {{ .Release.Namespace }} get cluster {{ include "cnpg-cluster.fullname" . }}
+    kubectl  --namespace {{ .Release.Namespace }} describe cluster {{ include "cnpg-cluster.fullname" . }}
+
+2. If you don't specify the existing secrets, you can find the generated ones by running:
+    kubectl  --namespace {{ .Release.Namespace }} get secrets
+
+3. Get all and pvc
+    kubectl --namespace {{ .Release.Namespace }} get all
+    kubectl --namespace {{ .Release.Namespace }} get pvc,pv
+
+4. Use the Postgres Read-write instance
+   * Hostname in the same namespace:       {{ include "cnpg-cluster.fullname" . }}-rw:5432
+   * Hostname to use in another namespace: {{ include "cnpg-cluster.fullname" . }}-rw.{{ .Release.Namespace }}.svc.cluster.local:5432
