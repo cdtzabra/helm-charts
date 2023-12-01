@@ -8,7 +8,7 @@ It offers options for creating the different types of cloudnative-pg clusters: s
 
 ## Install
 
-**Cloudnative-pg operator (cnpg-operaor) must be installed first on your cluster** before installing this chart.
+**Cloudnative-pg operator (cnpg-operator) must be installed first on your cluster** before installing this chart.
 
 
 Example of `custom-values.yaml`
@@ -26,15 +26,7 @@ bootstrap:
 storage:
   resizeInUseVolumes: true
   size: 10Gi           # postgres pvc size
-  storageClassName: ""
-  volumeMode: ""
-  pvcTemplate: {}     # to customize the pvc template
-  # pvcTemplate:
-  #   accessModes:
-  #     - ReadWriteOnce
-  #   resources:
-  #     requests:
-  #       storage: 1Gi
+
 
 # backup to s3
 backup_enabled: true
@@ -58,9 +50,6 @@ scheduledbackup:
   # Beware that this format accepts also the seconds field, and it is different from the crontab format in Unix/Linux systems.
   # it has a total of 6 fiels while kubernetes/linux cronjob has 5
 
-
-# instances: 3 # 3 instances are created by default
-# to override MORE variables/parametes, see the values.yaml in the chart folder
 ```
 
-Deploy the chart: `helm install keycloak-cnpg-cluster ./ -n keyclaok --create-namespace -f custom-values.yaml --atomic`
+Deploy the chart: `helm install keycloak-cnpg-cluster ./ -n keycloak --create-namespace -f custom-values.yaml --atomic`
