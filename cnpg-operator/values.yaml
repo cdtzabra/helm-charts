@@ -1,8 +1,9 @@
-config:
-  create: true  # default
-  secret: false # default
-  data:
-    # https://cloudnative-pg.io/documentation/current/operator_conf/#available-options
-    INHERITED_ANNOTATIONS: "categories"
-    INHERITED_LABELS: "app, instance, environment"
-    ENABLE_INSTANCE_MANAGER_INPLACE_UPDATES: "true"    
+cloudnative-pg:
+  config:
+    create: true  # default
+    secret: false # default
+    data:
+      # https://cloudnative-pg.io/documentation/current/operator_conf/#available-options
+      INHERITED_ANNOTATIONS: "categories"
+      INHERITED_LABELS: "app, instance, environment"
+      ENABLE_INSTANCE_MANAGER_INPLACE_UPDATES: "true"    
