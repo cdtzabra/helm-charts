@@ -306,3 +306,14 @@ roles: []
 #     - pg_signal_backend
 #   passwordSecret:
 #     name: cluster-example-dante
+
+# certificates
+# https://cloudnative-pg.io/documentation/current/cloudnative-pg.v1/#postgresql-cnpg-io-v1-CertificatesConfiguration
+certificates: {}
+# certificates:
+#   serverAltDNSNames:
+#     - skone.test.com
+#   clientCASecret: ""
+#   replicationTLSSecret: ""
+#   serverTLSSecret: ""
+#   serverCASecret: ""

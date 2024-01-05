@@ -261,3 +261,9 @@ spec:
 
   {{- end }}
   {{- end }}
+
+  {{- with .Values.certificates }}
+
+  certificates:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
