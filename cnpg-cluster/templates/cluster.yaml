@@ -71,6 +71,10 @@ spec:
       postInitApplicationSQLRefs:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.bootstrap.initdb.import }}
+      import:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
   {{ else }}
     {{- if .Values.bootstrap_use_recovery }}
     recovery:

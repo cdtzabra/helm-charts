@@ -90,6 +90,16 @@ bootstrap:
     #   secretRefs:
     #   - name: post-init-sql-secret
     #     key: secret.sql
+    #
+    # Bootstraps the new cluster by importing data from an existing PostgreSQL instance using logical backup (pg_dump and pg_restore)
+    # https://cloudnative-pg.io/documentation/current/database_import/
+    import: {}
+    # import:
+    #   type: microservice
+    #   databases:
+    #     - skdb
+    #   source:
+    #     externalCluster: externalcluster
   recovery:
     # Bootstrap the cluster from a backup
     # the both are mutual exclusive. Only one is applied at a time
