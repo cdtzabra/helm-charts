@@ -48,7 +48,7 @@ spec:
       owner: {{ .Values.bootstrap.initdb.owner | default "app" }}
       {{- if .Values.bootstrap.initdb.owner_secret }}
       secret:
-        name: {{ .Values.bootstrap.initdb.owner_existingsecret }}
+        name: {{ .Values.bootstrap.initdb.owner_secret }}
       {{- end }}
       dataChecksums: {{ .Values.bootstrap.initdb.dataChecksums }}
       encoding: {{ .Values.bootstrap.initdb.encoding }}
@@ -78,32 +78,55 @@ spec:
   {{ else }}
     {{- if .Values.bootstrap_use_recovery }}
     recovery:
+      {{- if .Values.bootstrap.recovery.database }}
+      database: {{ .Values.bootstrap.recovery.database }}
+      {{- end }}
+      {{- if .Values.bootstrap.recovery.database_owner }}
+      owner: {{ .Values.bootstrap.recovery.database_owner }}
+      {{- end }}
+      {{- if .Values.bootstrap.recovery.database_owner_secret }}
+      secret:
+        name: {{ .Values.bootstrap.recovery.database_owner_secret }}
+      {{- end }}
+      {{- with .Values.bootstrap.recovery.recoveryTarget }}
+      recoveryTarget:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
       {{- if  .Values.bootstrap.recovery.from_backup }}
       backup:
         name: {{ .Values.bootstrap.recovery.from_backup }}
       {{- else }}
+      {{- if  .Values.bootstrap.recovery.from_source_cluster }}
+      source: {{ .Values.bootstrap.recovery.from_source_cluster }}
+      {{- end }}
+      {{- if  .Values.bootstrap.recovery.from_volume.snapshot }}
       volumeSnapshots:
         storage:
-          name: {{ required "Recovery from volume requires the volume name. Set it or use backup instead" .Values.bootstrap.recovery.from_volume.snapshot }}
+          name: {{ .Values.bootstrap.recovery.from_volume.snapshot }}
           kind: VolumeSnapshot
           apiGroup: snapshot.storage.k8s.io
         {{- if .Values.bootstrap.recovery.from_volume.walStorage }}
-
         walStorage:
           name: {{ .Values.bootstrap.recovery.from_volume.walStorage }}
           kind: VolumeSnapshot
           apiGroup: snapshot.storage.k8s.io
         {{- end }}
       {{- end }}
+      {{- end }}
     {{- end }}
     {{- if .Values.bootstrap_use_pg_basebackup }}
     pg_basebackup:
       source: {{ required "pg_basebackup requires source cluster" .Values.bootstrap.pg_basebackup.source_cluster }}
-      {{- if .Values.bootstrap.pg_basebackup.source_database }}
-      database: {{ .Values.bootstrap.pg_basebackup.source_database }}
+      {{- if .Values.bootstrap.pg_basebackup.database }}
+      database: {{ .Values.bootstrap.pg_basebackup.database }}
       {{- end }}
-      {{- if .Values.bootstrap.pg_basebackup.source_database_owner }}
-      owner: {{ .Values.bootstrap.pg_basebackup.source_database_owner }}
+      {{- if .Values.bootstrap.pg_basebackup.database_owner }}
+      owner: {{ .Values.bootstrap.pg_basebackup.database_owner }}
+      {{- end }}
+      {{- if .Values.bootstrap.pg_basebackup.database_owner_secret }}
+      secret:
+        name: {{ .Values.bootstrap.pg_basebackup.database_owner_secret }}
       {{- end }}
     {{- end }}
 
