@@ -4,6 +4,6 @@ cloudnative-pg:
     secret: false # default
     data:
       # https://cloudnative-pg.io/documentation/current/operator_conf/#available-options
-      INHERITED_ANNOTATIONS: "pre.hook.backup.velero.io/command, pre.hook.backup.velero.io/container, post.hook.backup.velero.io/command, post.hook.backup.velero.io/container"
+      INHERITED_ANNOTATIONS: "pre.hook.backup.velero.io/command, pre.hook.backup.velero.io/container, post.hook.backup.velero.io/command, post.hook.backup.velero.io/container, pre.hook.backup.velero.io/timeout, pre.hook.backup.velero.io/on-error"
       INHERITED_LABELS: "app, instance, environment"
       ENABLE_INSTANCE_MANAGER_INPLACE_UPDATES: "true"    
