@@ -12,6 +12,6 @@ cloudnative-pg:
           pre.hook.backup.velero.io/timeout,
           pre.hook.backup.velero.io/on-error,
           post.hook.backup.velero.io/timeout,
-          post.hook.backup.velero.io/on-error"
+          post.hook.backup.velero.io/on-error
       INHERITED_LABELS: "app, instance, environment"
       ENABLE_INSTANCE_MANAGER_INPLACE_UPDATES: "true"    
