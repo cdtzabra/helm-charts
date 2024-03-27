@@ -30,6 +30,23 @@ imagePullSecrets: []
 #    - name: private_registry_access
 
 
+# Labels & Annotations
+# https://cloudnative-pg.io/documentation/1.22/labels_annotations/
+
+# only labels keys present in the cloudnative-pg controller's INHERITED_LABELS
+# will be propagated from the cluster to the post-created pods
+labels: {}
+# labels:
+#   component: postgres
+
+# only annotation keys present in the cloudnative-pg controller's INHERITED_ANNOTATIONS
+# will be propagated from the cluster to the post-created pods
+annotations: {}
+# annotations:
+#   pre.hook.backup.velero.io/container: postgres
+#   pre.hook.backup.velero.io/on-error: Fail
+#   pre.hook.backup.velero.io/timeout: 90s
+
 # postgresql
 pg:
   parameters:
@@ -224,6 +241,12 @@ backup:
     #   ACCESS_KEY_ID: a2V5X2lk
     #   ACCESS_SECRET_KEY: c2VjcmV0X2tleQ==
     #
+  # EndpointCA store the CA bundle of the barman endpoint.
+  # Useful when using self-signed certificates to avoid errors with certificate issuer and barman-cloud-wal-archive
+  endpointCA: {}
+  # endpointCA:
+  #   name: ""
+  #   key: ""
   # wal
   wal:
     compression: gzip

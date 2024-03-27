@@ -11,6 +11,14 @@ spec:
   imagePullSecrets:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- with .Values.labels}}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 
   instances: {{ .Values.instances }}
   postgresUID: {{ .Values.postgresUID }}
@@ -197,6 +205,10 @@ spec:
         secretAccessKey:
           name: {{ .Values.backup.s3_credential.secretName }}
           key: {{ .Values.backup.s3_credential.secret_secretKey }}
+      {{- with .Values.backup.endpointCA }}
+      endpointCA:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       wal:
         compression: {{ .Values.backup.wal.compression }}
         maxParallel: {{ .Values.backup.wal.maxParallel }}
