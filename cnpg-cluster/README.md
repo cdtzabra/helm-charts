@@ -1,4 +1,4 @@
-# Cloudnative-pg Instance - CNPG Cluster
+# Cloudnative-pg Cluster- Cnpg-cluster
 
 The purpose of this chart is to spawn a cnpg cluster instances...
 
