@@ -3,20 +3,20 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: {{ include "cnpg-cluster.fullname" . }}
+  {{- with .Values.metadata.labels}}
+  labels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.metadata.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   description: {{ include "cnpg-cluster.fullname" . }}
   imageName: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
   imagePullPolicy: {{ .Values.image.pullPolicy }}
   {{- with .Values.imagePullSecrets }}
   imagePullSecrets:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .Values.labels}}
-  labels:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
-  {{- with .Values.annotations }}
-  annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 
@@ -264,8 +264,12 @@ spec:
   {{- end }}
 
   {{- with .Values.env }}
-
   env:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- with .Values.envFrom }}
+  envFrom:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 
@@ -273,15 +277,37 @@ spec:
 
   affinity:
     enablePodAntiAffinity: {{ .Values.affinity.enablePodAntiAffinity }}
+    {{- if .Values.affinity.topologyKey }}
     topologyKey: {{ .Values.affinity.topologyKey }}
+    {{- end }}
     {{- with .Values.affinity.nodeSelector }}
     nodeSelector:
       {{- toYaml . | nindent 6 }}
     {{- end }}
-    {{- with .Values.affinity.tolerations}}
+    {{- with .Values.affinity.nodeAffinity }}
+    nodeAffinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.affinity.tolerations }}
     tolerations:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    podAntiAffinityType: {{ .Values.affinity.podAntiAffinityType }}
+
+    {{- with .Values.affinity.additionalPodAntiAffinity }}
+    additionalPodAntiAffinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+
+    {{- with .Values.affinity.additionalPodAffinity }}
+    additionalPodAffinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }} 
+  {{- end }}
+
+  {{- with .Values.topologySpreadConstraints }}
+  topologySpreadConstraints:
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 
   {{- if .Values.ServiceAccountTemplate.enabled }}

@@ -17,7 +17,8 @@ minSyncReplicas: 0
 # The target value for the synchronous replication quorum, that can be decreased if the number of ready standbys is lower than this. Undefined or 0 disable synchronous replication.
 maxSyncReplicas: 0
 logLevel: info
-# priorityClassName: "" # optionnal
+# priorityClassName
+priorityClassName: ""
 
 image:
   repository: ghcr.io/cloudnative-pg/postgresql
@@ -30,22 +31,23 @@ imagePullSecrets: []
 #    - name: private_registry_access
 
 
-# Labels & Annotations
-# https://cloudnative-pg.io/documentation/1.22/labels_annotations/
+# Metadata Labels & Annotations
+metadata:
+  # https://cloudnative-pg.io/documentation/1.22/labels_annotations/
 
-# only labels keys present in the cloudnative-pg controller's INHERITED_LABELS
-# will be propagated from the cluster to the post-created pods
-labels: {}
-# labels:
-#   component: postgres
+  # only labels keys present in the cloudnative-pg controller's INHERITED_LABELS
+  # will be propagated from the cluster to the post-created pods
+  labels: {}
+  # labels:
+  #   component: postgres
 
-# only annotation keys present in the cloudnative-pg controller's INHERITED_ANNOTATIONS
-# will be propagated from the cluster to the post-created pods
-annotations: {}
-# annotations:
-#   pre.hook.backup.velero.io/container: postgres
-#   pre.hook.backup.velero.io/on-error: Fail
-#   pre.hook.backup.velero.io/timeout: 90s
+  # only annotation keys present in the cloudnative-pg controller's INHERITED_ANNOTATIONS
+  # will be propagated from the cluster to the post-created pods
+  annotations: {}
+  # annotations:
+  #   pre.hook.backup.velero.io/container: postgres
+  #   pre.hook.backup.velero.io/on-error: Fail
+  #   pre.hook.backup.velero.io/timeout: 90s
 
 # postgresql
 pg:
@@ -319,6 +321,9 @@ env: []
 #   - name: "Author"
 #     value: "SKONE"
 
+# envFrom
+envFrom: []
+
 # ServiceAccountTemplate contains the template needed to generate the service accounts
 # https://cloudnative-pg.io/documentation/1.21/cloudnative-pg.v1/#postgresql-cnpg-io-v1-ServiceAccountTemplate
 ServiceAccountTemplate:
@@ -331,12 +336,18 @@ ServiceAccountTemplate:
 
 # affinity
 affinity:
-  enablePodAntiAffinity: false
-  podAntiAffinityType: "preferred" # Allowed values are: "preferred" (default if empty) or "required"
-  topologyKey: failure-domain.beta.kubernetes.io/zone
+  enablePodAntiAffinity: true
+  topologyKey: ""
   nodeSelector: {}
+  nodeAffinity: {}
   tolerations: []
+  podAntiAffinityType: "preferred" # Allowed values are: "preferred" (default if empty) or "required"
+  additionalPodAntiAffinity: {}
+  additionalPodAffinity: {}
 
+
+# topologySpreadConstraints
+topologySpreadConstraints: {}
 
 # managed - Roles
 # RoleConfiguration is the representation, in Kubernetes, of a PostgreSQL role with the additional field
